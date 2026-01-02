@@ -82,3 +82,5 @@ results = analyzer.batch_analyze(passwords)
 for i,j in results.items():
     print(f"{i}: {j['level']}")
 ```
+# Лицензия
+Этот проект распространяется под лицензией MIT. 
