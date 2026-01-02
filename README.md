@@ -75,3 +75,10 @@ leak_result = analyzer.leak_analyze("password123")
 if leak_result['leak']:
     print("Пароль найден в утечках")
 ```
+*Проверка нескольких паролей*
+```
+passwords = ["happy_new_2026", "h0p|)er08all", "qwerty123"]
+results = analyzer.batch_analyze(passwords)
+for i,j in results.items():
+    print(f"{i}: {j['level']}")
+```
