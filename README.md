@@ -3,16 +3,14 @@
 # Установка
 1 способ: Установка через pip с GitHub
 ```
-pip install git+https://github.com/yourusername/password-analyzer.git 
+pip install git+https://github.com/iviqn/password_analyzer.git 
 ```
 
 2 способ: Установка как локальный пакет
 ```
-cd /path/to/password_analyzer
+cd /path/to/password_analyzer  # Переходим в директорию проекта
 ```
 ```
-pip install -e .
+pip install . # устанавливаем
 ```
-```
-pip install .
-```
+
