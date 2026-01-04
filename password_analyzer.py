@@ -10,7 +10,10 @@ class PasswordAnalyzer:
     def __init__(self, history_file='password_history.json', 
                  rockyou_file='rockyou.txt'):
         self.history_file = history_file
-        self.rockyou_file = rockyou_file
+        if rockyou_file:
+            self.rockyou_file = self.load_rockyou()
+        else:
+            self.rockyou_file = set()             
         self.HIBP_API_URL = "https://api.pwnedpasswords.com/range/"
         self.rockyou_passwords = self.load_rockyou()
         self.top_100_passwords = self.load_top()
@@ -23,7 +26,6 @@ class PasswordAnalyzer:
                 if i.strip():
                     rockyou_pass.add(i.strip())
         return rockyou_pass
-    
     def load_top(self):
         return [
             "123456", "password", "12345678", "qwerty", "123456789", "12345", 
@@ -53,12 +55,11 @@ class PasswordAnalyzer:
         print("3) По маске (d=цифра, l=буква, s=спецсимвол)")
         
         choice = input("Выберите (1-3): ")
-        
-        if choice == "1":
+        if choice=="1":
             return self.gen_all(size)
-        elif choice == "2":
+        elif choice=="2":
             return self.gen_mix(size)
-        elif choice == "3":
+        elif choice=="3":
             return self.gen_mask()
         else:
             return self.gen_all(size)
@@ -68,16 +69,14 @@ class PasswordAnalyzer:
         upr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         dig = "0123456789"
         sym = "!@#$%^&*_-"
-        all_chars = lwr + upr + dig + sym
-        
+        all_chars = lwr+upr+dig+sym
         pwd = [
             random.choice(lwr),
             random.choice(upr),
             random.choice(dig),
             random.choice(sym)
         ]
-        
-        for i in range(size - 4):
+        for i in range(size-4):
             pwd.append(random.choice(all_chars))
         
         random.shuffle(pwd)
@@ -87,21 +86,17 @@ class PasswordAnalyzer:
         print("\n1) Буквы+цифры")
         print("2) Буквы+спецсимволы")
         ch = input("Выберите (1-2): ")
-        
         letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        
         if ch == "1":
             dig = "0123456789"
-            all_chars = letters + dig
+            all_chars = letters+dig
             pwd = [random.choice(letters), random.choice(dig)]
         else:
             sym = "!@#$%^&*_-"
-            all_chars = letters + sym
+            all_chars = letters+sym
             pwd = [random.choice(letters), random.choice(sym)]
-        
-        for i in range(size - 2):
+        for i in range(size-2):
             pwd.append(random.choice(all_chars))
-        
         random.shuffle(pwd)
         return ''.join(pwd)
     
@@ -114,14 +109,14 @@ class PasswordAnalyzer:
         
         p = []
         for i in mask:
-            if i == 'd':
+            if i=='d':
                 p.append(random.choice(dig))
-            elif i == 'l':
+            elif i=='l':
                 p.append(random.choice(lwr + upr))
-            elif i == 's':
+            elif i=='s':
                 p.append(random.choice(sym))
             else:
-                p.append(random.choice(lwr + upr + dig + sym))
+                p.append(random.choice(lwr+upr+dig+sym))
         
         return ''.join(p)
     
@@ -171,12 +166,8 @@ class PasswordAnalyzer:
                 glcount+=1
             elif char in sgl:
                 sglcount+=1
-        total = glcount + sglcount
-        if total == 0:
-            rating = 0.5
-        else:
-            rating = glcount / total
-        if rating < 0.2 or rating > 0.8:
+        rating = glcount/(glcount_sglcount)
+        if rating<0.2 or rating>0.8:
             comfort = 'сложно произнести'
         else:
             comfort = 'легко произнести'
@@ -187,34 +178,44 @@ class PasswordAnalyzer:
         }
     
     def has_digits(self, password):
-        return any(char.isdigit() for char in password)
+        for i in password:
+            if i.isdigit():
+                return True
+        return False
     def has_upper(self, password):
-        return any(char.isupper() for char in password)
+        for i in password:
+            if i.isupper():
+                return True
+        return False
     def has_lower(self, password):
-        return any(char.islower() for char in password)
+        for i in password:
+            if i.islower():
+                return True
+        return False
     def has_special(self, password):
         specials = "!@#$%^&*()_+-=[]{;:,.<>/?"
-        return any(char in specials for char in password)
+        for i in password:
+            if i in specials:
+                return True
+        return False
     def has_repeat(self, password):
-        if len(password) >= 3:
-            for i in range(len(password) - 2):
+        if len(password)>=3:
+            for i in range(len(password)-2):
                 if password[i]==password[i+1]==password[i+2]:
                     return True
         seqs = ['abc', 'qwe', 'xyz', '123', '234', '345', '456', '789', '012']
-        for seq in seqs:
-            if seq in password.lower():
+        for i in seqs:
+            if i in password.lower():
                 return True
         return False
     def has_common_pattern(self, password):
         patterns = [
-            'qwerty', 'asdfgh', 'zxcvbn',
+            'qwerty','asdfgh', 'zxcvbn',
             '123456', '654321', '112233', '223344', 'password', 'admin',
             'login', 'welcome', 'secret'
         ]
-        
-        pwd_lower = password.lower()
-        for pattern in patterns:
-            if pattern in pwd_lower:
+        for i in patterns:
+            if i in password.lower():
                 return True
         
         return False
@@ -250,26 +251,31 @@ class PasswordAnalyzer:
         leak = self.leaks(password)
         pop = self.pops(password)
         hibp_res = self.check_hibp(password)
-        
+
+        if leak or hibp_res['found']:
+            level = 'найден в утечках'
+            recs = ['Замените пароль']
+        else:
+            level = 'не найден'
+            recs = ['Пароль не найден в утечках']
+
         return {
             'password': password,
             'leak': leak,
             'pop': pop,
             'hibp': hibp_res,
-            'level': 'НАЙДЕН В УТЕЧКАХ' if leak or hibp_res['found'] else 'НЕ НАЙДЕН',
-            'recs': ['Замените пароль'] if leak or hibp_res['found'] else ['Пароль не найден в утечках'],
+            'level': level,
+            'recs': recs,
             'analysis_type': 'LEAK_CHECK',
             'basic_criteria': False,
             'phonetic_check': False,
             'hibp_check': True
         }
-    
     def all_analyze(self, password):
         leak = self.leaks(password)
         pop = self.pops(password)
         phonetic = self.phonetics(password)
-        hibp_res = self.check_hibp(password)
-        
+        hibp_res = self.check_hibp(password) 
         scan_res = {
             'has_digits': self.has_digits(password),
             'has_upper': self.has_upper(password),
@@ -280,10 +286,8 @@ class PasswordAnalyzer:
             'size': len(password),
             'unique_chars': len(set(password))
         }
-        
         rating = self.comp_rating(password, leak, hibp_res)
         recs = self.comp_recs(scan_res, leak, pop, phonetic, hibp_res)
-        
         return {
             'password': password,
             'rating': rating,
@@ -329,13 +333,10 @@ class PasswordAnalyzer:
             rating+=2
         elif char_types==2:
             rating+=1
-        
         if len(set(password))>=size*0.8:
             rating += 2
-        
         if self.has_repeat(password):
             rating-=2
-        
         if self.has_common_pattern(password):
             rating-=2
         if size>=12 and not self.has_repeat(password) and not self.has_common_pattern(password):
@@ -348,16 +349,15 @@ class PasswordAnalyzer:
         rating = self.basic_rating(password)
         
         if leak:
-            rating = max(1, rating - 3)
+            rating = max(1, rating-3)
         
         if hibp_res['found']:
             if hibp_res['leak_count']>100:
-                rating = max(1, rating - 4)
+                rating = max(1, rating-4)
             elif hibp_res['leak_count']>10:
-                rating = max(1, rating - 3)
+                rating = max(1, rating-3)
             elif hibp_res['leak_count']>0:
-                rating = max(1, rating - 2)
-        
+                rating = max(1, rating-2)
         return max(1, min(10, rating))
     
     def basic_level(self, rating):
@@ -392,34 +392,32 @@ class PasswordAnalyzer:
             recs.append("Избегайте повторов символов и последовательностей")
         if scan['has_common_pattern']:
             recs.append("Избегайте распространенных паттернов")
-        if scan['size'] < 8:
+        if scan['size']<8:
             recs.append("Увеличьте длину до 8 или более знаков")
-        elif scan['size'] < 12:
-            recs.append("Рекомендуется длина 12+ символов")
-            
+        elif scan['size']<10:
+            recs.append("Рекомендуется длина 10+ символов")
         return recs
     
     def comp_recs(self, scan, leak, pop, phonetic, hibp_res):
         recs = self.basic_recs(scan)
         if pop['exact']:
             recs.append("Пароль найден в топ-100 популярных паролей")
-        elif pop['score'] > 0:
+        elif pop['score']>0:
             recs.append(f"Пароль похож на популярные: {', '.join(pop['similar'])}")
         if leak:
             recs.insert(0, "Пароль найден в локальной базе утечек")
         if hibp_res['found']:
-            recs.insert(0, f"Пароль найден в {hibp_res['leak_count']} утечках через HIBP")
-        if phonetic['comfort'] == 'сложно произнести':
+            recs.insert(0, f"Пароль найден в утечках через HIBP")
+        if phonetic['comfort']=='сложно произнести':
             recs.append("Пароль сложно произнести")
-        
         return recs
     
     def batch_analyze(self, passwords, analysis_type='comprehensive'):
         ans = {}
         for i in passwords:
-            if analysis_type == 'basic':
+            if analysis_type=='basic':
                 ans[i] = self.basic_analyze(i)
-            elif analysis_type == 'leak':
+            elif analysis_type=='leak':
                 ans[i] = self.leak_analyze(i)
             else:  
                 ans[i] = self.all_analyze(i)
