@@ -8,7 +8,7 @@ pip install git+https://github.com/iviqn/pwd_analyzer.git
 # Требования
 - Python 3.8 или выше
 - Доступ в интернет (для проверки через HIBP API)
-- Файл rockyou.txt (для локальной проверки утечек)
+- Файл rockyou.txt (по возможности)
 
 # Функции
 ## Основные функции анализа
