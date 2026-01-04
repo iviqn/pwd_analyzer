@@ -3,21 +3,14 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "password-analyzer"
+name = "Password Analyzer"
 version = "1.0.0"
-description = "Анализ надежности паролей с проверкой утечек и рекомендациями"
+description = "Password analyzer library"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "MIT"}
 authors = [
-    {name = "Иван"}
+    { name = "iviqn" }
 ]
-
 dependencies = [
-    "requests>=2.25"
+    "requests"
 ]
-
-[project.urls]
-Homepage = "https://github.com/yourname/password-analyzer"
-Repository = "https://github.com/yourname/password-analyzer"
-Issues = "https://github.com/yourname/password-analyzer/issues"
