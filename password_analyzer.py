@@ -30,7 +30,7 @@ class PasswordAnalyzer:
         return [
             "123456", "password", "12345678", "qwerty", "123456789", "12345", 
             "1234", "111111", "1234567", "dragon", "123123", "baseball", 
-            "abc123", "football", "monkey", "letmein", "696969", "shadow",
+            "abc123", "football", "monkey", "letmein", "shadow",
             "master", "666666", "qwertyuiop", "123321", "mustang", "1234567890",
             "michael", "654321", "pussy", "superman", "1qaz2wsx", "7777777",
             "fuckyou", "121212", "000000", "qazwsx", "123qwe", "killer",
@@ -208,7 +208,7 @@ class PasswordAnalyzer:
             if i in password.lower():
                 return True
         return False
-    def has_common_pattern(self, password):
+    def has_pattern(self, password):
         patterns = [
             'qwerty','asdfgh', 'zxcvbn',
             '123456', '654321', '112233', '223344', 'password', 'admin',
